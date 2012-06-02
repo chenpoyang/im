@@ -18,6 +18,7 @@ typedef struct client {
     char nick[32];
     int con_fd;
 }Client;
+
 static pthread_t cli_thrd[1024];    /* 服务器并发线程 */
 Client cli[1024];   /* 客户端 */
 static int cli_que_len;
@@ -25,6 +26,8 @@ static char buf[MAX_BUF_LEN];
 
 void *recv_thrd(void *arg);   /* server for client */
 void remove_client(const int client_id);    /* deal with client quit */
+void get_dst_nick(const char *msg, char *ret);  /* 客户与客户之间的通信 */
+int client_connected(const char *nick); /* 此昵称的客户在线 */
 
 int main(int argc, char *argv[])
 {
@@ -94,10 +97,10 @@ int main(int argc, char *argv[])
 
 void *recv_thrd(void *arg)   /* server for client */
 {
-    int sock_fd;
+    int sock_fd, dst_fd, i;
     int rec_bytes;
     Client *cli_ptr = NULL;
-int index;
+    char *ptr = NULL;
 
     cli_ptr = (Client *)arg;
     sock_fd = cli_ptr->con_fd;
@@ -105,40 +108,80 @@ int index;
 
     while ((rec_bytes = recv(sock_fd, buf, sizeof(buf), 0)) > 0)
     {
-        printf("server receive: %s\n", buf);
-        if (buf[0] == '/')  /* command request */
+        printf("server receive(%d): %s\n", cli_ptr->con_fd, buf);
+        buf[rec_bytes] = '\0';
+        if (strstr(buf, "::") == NULL)  /* send to all online people */
         {
-            if (strncmp(buf + 1, "nick", 4) == 0);
+            for (i = 0; i < cli_que_len; ++i)
             {
-                strcpy(cli_ptr->nick, buf + 5);
+                printf("%d: fd = %d\n", i + 1, cli[i].con_fd);
+                if (cli[i].con_fd != sock_fd)
+                {
+                    send(cli[i].con_fd, buf, sizeof(buf), 0);
+                }
             }
         }
-        puts(buf);
-        index = 5;
-        buf[rec_bytes] = '\0';
-        if (strcpy(cli_ptr->nick, "") == 0)
+        else
         {
-            strcpy(buf, "WARNNING:please set your nick first!eg: /nick jordan");
-        }
-        while (--index >= 0)
-        {
-            send(sock_fd, buf, sizeof(buf), 0);
-            thread_wait(2);
+            sscanf(buf, "%d", &dst_fd);
+            ptr = buf;
+            ptr = strstr(buf, "::");
+            ptr += 2;
+            for (i = 0; i < cli_que_len; ++i)
+            {
+                printf("%d: fd = %d\n", i + 1, cli[i].con_fd);
+                if (cli[i].con_fd == dst_fd)
+                {
+                    send(dst_fd, ptr, sizeof(buf) - (ptr - buf), 0);
+                }
+            }
         }
     }
 
     close(sock_fd);
     remove_client(sock_fd);
-    printf("a client quit!\n");
+    printf("a client(%d) quit!\n", cli_ptr->con_fd);
 
     pthread_exit(NULL);
 }
 
 void remove_client(const int client_id)    /* deal with client quit */
 {
+    int i, index;
+
+    index = -1;
+    for (i = 0; i < cli_que_len; ++i)
+    {
+        if (cli[i].con_fd == client_id)
+        {
+            index = i;
+            break;
+        }
+    }
+
+    if (index > 0)
+    {
+        for (i = index + 1; i < cli_que_len; ++i)
+        {
+            cli[i - 1].con_fd = cli[i].con_fd;
+            strcpy(cli[i - 1].nick, cli[i].nick);
+        }
+    }
+    --cli_que_len;
+}
+
+/* 此昵称的客户在线 */
+int client_connected(const char *nick)
+{
     int i;
 
     for (i = 0; i < cli_que_len; ++i)
     {
+        if (strcpy(cli[i].nick, nick) == 0)
+        {
+            return 1;
+        }
     }
+
+    return 0;
 }

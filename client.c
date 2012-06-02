@@ -11,7 +11,7 @@
 
 static char buf[MAX_BUF_LEN];
 
-void *recv_thrd(void *arg); /* 接收线程 */
+void *recv_thrd(void *arg); /* 客户端接收信息线程 */
 
 int main(int argc, char *argv[])
 {
@@ -61,10 +61,6 @@ int main(int argc, char *argv[])
 
     while (fgets(buf, sizeof(buf), stdin) != NULL)
     {
-        if (buf[0] == 'e' || buf[0] == 'E')
-        {
-            break;
-        }
         send(sock_fd, buf, sizeof(buf), 0);
     }
 
