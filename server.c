@@ -11,7 +11,7 @@
 #include "global.h"
 
 /* 服务器ip和端口号 */
-#define _addr_ "172.18.18.10"
+#define _addr_ "127.0.0.1"
 #define _port_ 8888
 
 typedef struct client {
