@@ -76,9 +76,10 @@ int main(int argc, char *argv[])
         /* get the nickname of the client */
         cli[cli_que_len].con_fd = con_fd;
         printf("fd = %d\n", con_fd);
+        strcpy(cli[cli_que_len].nick, "fuck");
 
         /* create server thread for a new client */
-        chk = pthread_create(cli_thrd + cli_que_len, &attr, recv_thrd, (void *)cli + cli_que_len);
+        chk = pthread_create(cli_thrd + cli_que_len, &attr, recv_thrd, cli + cli_que_len);
         if (chk)
         {
             printf("create thread error!");
@@ -100,20 +101,25 @@ int index;
 
     cli_ptr = (Client *)arg;
     sock_fd = cli_ptr->con_fd;
-    rec_bytes = recv(sock_fd, buf, sizeof(buf), 0);
-    strcpy(cli_ptr->nick, buf + 1);
-    printf("client nick: %s\n", cli_ptr->nick);
-    printf("fd = %d\n", cli_ptr->con_fd);
+    printf("thread nick: %s\nthread fd: %d\n", cli_ptr->nick, cli_ptr->con_fd);
 
     while ((rec_bytes = recv(sock_fd, buf, sizeof(buf), 0)) > 0)
     {
-        if (buf[0] == '/')
+        printf("server receive: %s\n", buf);
+        if (buf[0] == '/')  /* command request */
         {
-            printf("command request!\n");
+            if (strncmp(buf + 1, "nick", 4) == 0);
+            {
+                strcpy(cli_ptr->nick, buf + 5);
+            }
         }
         puts(buf);
         index = 5;
         buf[rec_bytes] = '\0';
+        if (strcpy(cli_ptr->nick, "") == 0)
+        {
+            strcpy(buf, "WARNNING:please set your nick first!eg: /nick jordan");
+        }
         while (--index >= 0)
         {
             send(sock_fd, buf, sizeof(buf), 0);

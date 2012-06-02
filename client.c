@@ -10,7 +10,6 @@
 #include "global.h"
 
 static char buf[MAX_BUF_LEN];
-static char nick[32];
 
 void *recv_thrd(void *arg); /* 接收线程 */
 
@@ -60,24 +59,10 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    strcpy(nick + 1, "");
-
-    while (strcmp(nick + 1, "") == 0)
-    {
-        printf("Enter NickName(len < 32):");
-        scanf("%s", nick + 1);
-        getchar();
-    }
-    *nick = '/';    /* command request */
-    send(sock_fd, nick, sizeof(nick), 0);
-    printf("send nick: %s\n", nick);
-
-    printf("%s>>>", nick + 1);
     while (fgets(buf, sizeof(buf), stdin) != NULL)
     {
         if (buf[0] == 'e' || buf[0] == 'E')
         {
-            close(sock_fd);
             break;
         }
         send(sock_fd, buf, sizeof(buf), 0);
