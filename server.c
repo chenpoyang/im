@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
     {
         con_fd = accept(sock_fd, (struct sockaddr*)NULL, NULL);
         printf("a client connected!\n");
-        
+
         /* get the nickname of the client */
         cli[cli_que_len].con_fd = con_fd;
         printf("fd = %d\n", con_fd);

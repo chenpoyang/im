@@ -7,7 +7,7 @@
 /* max buf len */
 #define MAX_BUF_LEN 1024
 
-void bzero(void *base, unsigned int size);
+//void bzero(void *base, unsigned int size);
 
 void m_tolower(char *str);
 

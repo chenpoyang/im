@@ -5,11 +5,11 @@
 #include <pthread.h>
 #include "global.h"
 
-void bzero(void *base, unsigned int size)
-{
-    assert(size >= 0);
-    memset(base, 0, size);
-}
+//void bzero(void *base, unsigned int size)
+//{
+//    assert(size >= 0);
+//    memset(base, 0, size);
+//}
 
 void m_tolower(char *str)
 {
